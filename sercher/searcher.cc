@@ -21,65 +21,7 @@ namespace sercher{
     }
     return &pos->second;
   }
-#if 0
-    //更新正排索引
-    DocInfo* Index::BuildForward(std::string& line){
-      //对读取的一行进行切分，区分出url.正文，标题
-      std::vector<std::string> tokens;    //存放切分结果
-      StringUtil::Split(line,&tokens,"\3");
-      if(tokens.size() != 3)
-      {
-        std::cout<<"tokens is false"<<std::endl;
-        return NULL;
-      }
 
-      //构造为一个DocInfo对象
-      DocInfo info;
-      info.doc_id = forward_index.size();
-      info.title = tokens[0];
-      info.url = tokens[1];
-      info.content = tokens[2];
-      //把这个对象插入正排索引中
-      forward_index.push_back(info);
-      return forward_index.back();
-    }  
-
-
-    //更新倒排索引
-    void Index::BuildInverted(DocInfo& info){
-      //1.先进行分词
-      std::vector<std::string> title_tokens;
-      CutWord(info.title,&title_tokens);
-      std::vector<std::string> content_tokens;
-      CutWord(info.content,&content_tokens);
-
-      struct WordCut{
-        int title_cnt;
-        int content_cnt;
-      }
-      //2.在进行词频统计（用一个哈希表去统计）
-      std::unordered_map<std::string,WordCut> word_cnt;
-      for(auto& word : title_tokens){
-        boost::to_lower(word);
-        ++word_cnt[word].title_cnt;
-      }
-
-      for(auto& word : content_tokens){
-        boost::to_lower(word);   //忽略大小写
-        ++word_cnt[word].content_cnt;
-      }
-      //3.遍历分词结果，在倒排中查找
-      for(auto& word_pair : word_cnt){
-        Weight weight;
-        weight.doc_id = info.doc_id;
-        weight.weight = 20 * word_pair.second.title_cnt + word_pair.second.content_cnt; 
-      }
-      //4.不存在就插入
-      //5.存在的话就进行，找到对应的值，构建weight
-      std:: vector<Weight>& inverted_list = inverted_index[word_pair.first];
-      inverted_linst.push_back(weight);
-    }
-#endif
   //构建索引
   bool Index::Build(std::string input_path){
     std::cout<<"build index is start"<<std::endl;
