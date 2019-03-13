@@ -6,13 +6,14 @@ namespace sercher{
 
   //查正排
   DocInfo* Index::GetDocInfo(uint64_t doc_id){
-    if(doc_id >= forward_index.size())
+    if(doc_id >= forward_index.size()) //找到返回，没找到返回空
       return NULL;
     return &forward_index[doc_id];
   }
 
   //查倒排
   std::vector<Weight>* Index:: GetInvertedList(std::string key){
+    //直接在underod_map中查找
     auto pos = inverted_index.find(key);
     if(pos == inverted_index.end())
     {
@@ -39,6 +40,9 @@ namespace sercher{
       DocInfo* info = BuildForward(line);
       //3.更新倒排索引数据
       BuildInverted(*info);
+      if(info->doc_id % 500 == 0){
+        std::cout<<"already build: "<<(info->doc_id)<<std::endl;
+      }
     }
     file.close();
     std::cout<<"index build finish!"<<std::endl;  
@@ -47,6 +51,7 @@ namespace sercher{
 
     //更新正排索引
     DocInfo* Index::BuildForward(std::string& line){
+
       //对读取的一行进行切分，区分出url.正文，标题
       std::vector<std::string> tokens;    //存放切分结果
       StringUtil::Split(line,&tokens,"\3");
@@ -62,6 +67,7 @@ namespace sercher{
       info.title = tokens[0];
       info.url = tokens[1];
       info.content = tokens[2];
+
       //把这个对象插入正排索引中
       forward_index.push_back(info);
 
@@ -71,27 +77,33 @@ namespace sercher{
 
     //更新倒排索引
     void Index::BuildInverted(DocInfo& info){
-      //1.先进行分词
-      std::vector<std::string> title_tokens;
+
+      //1.先进行分词,标题正文都要分
+      std::vector<std::string> title_tokens;//存放标题的分词结果
       CutWord(info.title,&title_tokens);
-      std::vector<std::string> content_tokens;
+
+      std::vector<std::string> content_tokens;//存放正文的分词结果
       CutWord(info.content,&content_tokens);
 
-      struct WordCut{
+      struct WordCut{  //定义一个结构体来统计正文和标题的词频
         int title_cnt;
         int content_cnt;
       };
+
       //2.在进行词频统计（用一个哈希表去统计）
       std::unordered_map<std::string,WordCut> word_cnt;
+
       for(auto& word : title_tokens){
-        boost::to_lower(word);
-        ++word_cnt[word].title_cnt;
+
+        boost::to_lower(word); //全部变换为小写
+        ++(word_cnt[word].title_cnt);
       }
 
       for(auto& word : content_tokens){
         boost::to_lower(word);   //忽略大小写
-        ++word_cnt[word].content_cnt;
+        ++(word_cnt[word].content_cnt);
       }
+
       //3.遍历分词结果，在倒排中查找
       for(auto& word_pair : word_cnt){
         Weight weight;

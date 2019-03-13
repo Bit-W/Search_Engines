@@ -21,8 +21,8 @@ class FileUtil
       file.close();
       return true;
     }
-/*
-    static bool Write(const std::string& file_path, const std::string* html)
+
+    static bool Write( std::string& file_path, std::string& html)
     {
       std::ofstream file(file_path.c_str());
       if(!file.is_open())
@@ -33,7 +33,7 @@ class FileUtil
       file.close();
       return true;
     }
-    */
+    
 };
 
 class StringUtil{
